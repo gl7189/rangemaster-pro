@@ -1,0 +1,7 @@
+{
+  "name": "RangeMaster Pro",
+  "description": "A comprehensive sport shooting management app for IPSC, USPSA, and precision shooting, featuring AI target scanning, real-time scoring, and advanced performance analytics.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
