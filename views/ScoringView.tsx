@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Alert, Platform, Animated, Modal, FlatList } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Alert, Platform, Animated, Modal, FlatList, Image } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { Match, ScoreEntry, Shooter, Stage } from '../types';
 import { dbService } from '../services/dbService';
@@ -27,6 +27,10 @@ const ScoringView: React.FC<ScoringViewProps> = ({ match, onSaveScore }) => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [showShooterModal, setShowShooterModal] = useState(false);
   
+  // Nowe stany dla Review Modal
+  const [capturedImage, setCapturedImage] = useState<string | null>(null);
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
@@ -41,7 +45,7 @@ const ScoringView: React.FC<ScoringViewProps> = ({ match, onSaveScore }) => {
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
   }, [isRunning]);
 
-  const handleAiScan = async () => {
+  const handleLaunchCamera = async () => {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
     if (status !== 'granted') {
       Alert.alert('Błąd', 'Aplikacja potrzebuje dostępu do kamery.');
@@ -51,24 +55,37 @@ const ScoringView: React.FC<ScoringViewProps> = ({ match, onSaveScore }) => {
     const result = await ImagePicker.launchCameraAsync({
       mediaTypes: ['images'],
       allowsEditing: true,
-      quality: 0.7,
+      quality: 0.8,
       base64: true,
     });
 
     if (!result.canceled && result.assets[0].base64) {
-      setIsAnalyzing(true);
-      try {
-        const analysis = await analyzeTargetImage(result.assets[0].base64);
-        setAHits(prev => prev + (analysis.aCount || 0));
-        setCHits(prev => prev + (analysis.cCount || 0));
-        setDHits(prev => prev + (analysis.dCount || 0));
-        setMisses(prev => prev + (analysis.missCount || 0));
-        Alert.alert('Analiza AI Zakończona', `Dodano trafienia do bieżącego wyniku.`);
-      } catch (e) {
-        Alert.alert('Błąd AI', 'Nie udało się przeanalizować zdjęcia.');
-      } finally {
-        setIsAnalyzing(false);
-      }
+      setCapturedImage(result.assets[0].base64);
+      setShowReviewModal(true);
+    }
+  };
+
+  const handleConfirmAiAnalysis = async () => {
+    if (!capturedImage) return;
+    
+    setShowReviewModal(false);
+    setIsAnalyzing(true);
+    
+    try {
+      const analysis = await analyzeTargetImage(capturedImage);
+      
+      // Zaktualizuj liczniki
+      setAHits(prev => prev + (analysis.aCount || 0));
+      setCHits(prev => prev + (analysis.cCount || 0));
+      setDHits(prev => prev + (analysis.dCount || 0));
+      setMisses(prev => prev + (analysis.missCount || 0));
+      
+      Alert.alert('Analiza Sukces', `Zidentyfikowano: A:${analysis.aCount}, C:${analysis.cCount}, D:${analysis.dCount}, M:${analysis.missCount}.\n\n${analysis.summary}`);
+    } catch (e) {
+      Alert.alert('Błąd AI', 'Nie udało się przeanalizować tarczy. Spróbuj zrobić wyraźniejsze zdjęcie.');
+    } finally {
+      setIsAnalyzing(false);
+      setCapturedImage(null);
     }
   };
 
@@ -132,8 +149,8 @@ const ScoringView: React.FC<ScoringViewProps> = ({ match, onSaveScore }) => {
           <Text style={styles.shooterName}>{selectedShooter?.name || 'Wybierz zawodnika'}</Text>
           <Text style={styles.stageName}>{selectedStage?.name || 'Wybierz tor'}</Text>
         </View>
-        <TouchableOpacity style={styles.aiScanBtn} onPress={handleAiScan} disabled={isAnalyzing}>
-          {isAnalyzing ? <ActivityIndicator color="white" /> : <Text style={styles.aiBtnText}>📸 AI SCAN</Text>}
+        <TouchableOpacity style={[styles.aiScanBtn, isAnalyzing && styles.aiScanBtnLoading]} onPress={handleLaunchCamera} disabled={isAnalyzing}>
+          {isAnalyzing ? <ActivityIndicator color="white" size="small" /> : <Text style={styles.aiBtnText}>📸 AI SCAN</Text>}
         </TouchableOpacity>
       </TouchableOpacity>
 
@@ -178,6 +195,37 @@ const ScoringView: React.FC<ScoringViewProps> = ({ match, onSaveScore }) => {
           </TouchableOpacity>
         </View>
       </View>
+
+      {/* Modal Review Zdjęcia AI */}
+      <Modal visible={showReviewModal} animationType="fade" transparent={true}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.reviewCard}>
+            <Text style={styles.reviewTitle}>Potwierdź Zdjęcie Tarczy</Text>
+            {capturedImage && (
+              <Image 
+                source={{ uri: `data:image/jpeg;base64,${capturedImage}` }} 
+                style={styles.previewImage} 
+                resizeMode="cover"
+              />
+            )}
+            <Text style={styles.reviewInfo}>Upewnij się, że wszystkie przestrzeliny są widoczne.</Text>
+            <View style={styles.reviewActions}>
+              <TouchableOpacity 
+                style={styles.reviewConfirmBtn} 
+                onPress={handleConfirmAiAnalysis}
+              >
+                <Text style={styles.reviewBtnText}>ANALIZUJ Z GEMINI AI</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={styles.reviewCancelBtn} 
+                onPress={() => { setCapturedImage(null); setShowReviewModal(false); }}
+              >
+                <Text style={styles.reviewBtnText}>ODRZUĆ</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
 
       {/* Modal wyboru strzelca */}
       <Modal visible={showShooterModal} animationType="slide" transparent={true}>
@@ -240,6 +288,7 @@ const styles = StyleSheet.create({
   shooterName: { color: 'white', fontSize: 18, fontWeight: '900' },
   stageName: { color: '#6b7280', fontSize: 11, fontWeight: '800', textTransform: 'uppercase' },
   aiScanBtn: { backgroundColor: '#6366f1', paddingHorizontal: 12, paddingVertical: 10, borderRadius: 12 },
+  aiScanBtnLoading: { backgroundColor: '#312e81', opacity: 0.7 },
   aiBtnText: { color: 'white', fontSize: 10, fontWeight: '900' },
   timerCard: { backgroundColor: '#111827', padding: 20, borderRadius: 24, alignItems: 'center', borderWidth: 1, borderColor: '#1f2937' },
   timerValue: { color: 'white', fontSize: 72, fontWeight: '900', fontFamily: Platform.OS === 'ios' ? 'Courier New' : 'monospace' },
@@ -263,15 +312,25 @@ const styles = StyleSheet.create({
   saveBtnText: { color: 'white', fontWeight: '900', fontSize: 14 },
   
   // Modal styles
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.8)', justifyContent: 'flex-end' },
-  modalContent: { backgroundColor: '#111827', borderTopLeftRadius: 30, borderTopRightRadius: 30, padding: 25, maxHeight: '80%' },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.85)', justifyContent: 'center', alignItems: 'center', padding: 20 },
+  modalContent: { backgroundColor: '#111827', borderRadius: 30, padding: 25, width: '100%', maxHeight: '80%' },
   modalTitle: { color: 'white', fontSize: 20, fontWeight: '900', marginBottom: 20, textAlign: 'center' },
   shooterOption: { padding: 15, borderBottomWidth: 1, borderBottomColor: '#1f2937' },
   selectedOption: { backgroundColor: '#1f2937', borderRadius: 12 },
   optionName: { color: 'white', fontSize: 16, fontWeight: '800' },
   optionClub: { color: '#6b7280', fontSize: 12 },
   closeModal: { marginTop: 20, backgroundColor: '#374151', padding: 15, borderRadius: 15, alignItems: 'center' },
-  closeModalText: { color: 'white', fontWeight: '900' }
+  closeModalText: { color: 'white', fontWeight: '900' },
+
+  // AI Review Styles
+  reviewCard: { backgroundColor: '#111827', borderRadius: 32, padding: 24, width: '100%', borderWidth: 1, borderColor: '#1f2937', alignItems: 'center' },
+  reviewTitle: { color: 'white', fontSize: 20, fontWeight: '900', marginBottom: 20 },
+  previewImage: { width: '100%', height: 350, borderRadius: 20, marginBottom: 15 },
+  reviewInfo: { color: '#6b7280', fontSize: 12, textAlign: 'center', marginBottom: 25 },
+  reviewActions: { width: '100%', gap: 10 },
+  reviewConfirmBtn: { backgroundColor: '#6366f1', padding: 18, borderRadius: 16, alignItems: 'center' },
+  reviewCancelBtn: { backgroundColor: '#ef4444', padding: 18, borderRadius: 16, alignItems: 'center' },
+  reviewBtnText: { color: 'white', fontWeight: '900', fontSize: 14, letterSpacing: 1 }
 });
 
 export default ScoringView;
