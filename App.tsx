@@ -44,6 +44,10 @@ const App: React.FC = () => {
     loadData();
   }, [loadData]);
 
+  const handleUpdateMatch = (updatedMatch: Match) => {
+    setMatches(prev => prev.map(m => m.id === updatedMatch.id ? updatedMatch : m));
+  };
+
   const selectedMatch = useMemo(() => 
     matches.find(m => m.id === selectedMatchId), 
   [matches, selectedMatchId]);
@@ -101,7 +105,11 @@ const App: React.FC = () => {
             />
           )}
           {activeTab === 'matches' && (
-            <MatchManagementView matches={matches} onCreateMatch={(m) => setMatches([...matches, m])} />
+            <MatchManagementView 
+              matches={matches} 
+              onCreateMatch={(m) => setMatches([...matches, m])} 
+              onUpdateMatch={handleUpdateMatch}
+            />
           )}
           {activeTab === 'scoring' && selectedMatch && (
             <ScoringView match={selectedMatch} onSaveScore={(s) => setScores([...scores, s])} />

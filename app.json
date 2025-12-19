@@ -3,7 +3,7 @@
   "expo": {
     "name": "RangeMaster Pro",
     "slug": "range-master-pro",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "sdkVersion": "52.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -16,10 +16,12 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.grzegorz.rangemaster"
+      "bundleIdentifier": "com.grzegorz.rangemaster",
+      "buildNumber": "2"
     },
     "android": {
-      "package": "com.grzegorz.rangemaster"
+      "package": "com.grzegorz.rangemaster",
+      "versionCode": 2
     }
   }
 }

@@ -1,10 +1,12 @@
 
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
+import Constants from 'expo-constants';
 import { dbService } from '../services/dbService';
 
 const ProfileView: React.FC = () => {
   const [stats, setStats] = useState({ pending: 0, total: 0 });
+  const appVersion = Constants.expoConfig?.version || '1.0.0';
 
   useEffect(() => {
     const loadStats = async () => {
@@ -40,6 +42,13 @@ const ProfileView: React.FC = () => {
         <GunItem name="Glock 17 Gen 5" rounds={4200} />
         <GunItem name="CZ Shadow 2" rounds={1200} />
       </View>
+
+      <View style={styles.versionFooter}>
+        <Text style={styles.versionText}>Wersja: {appVersion}</Text>
+        <View style={styles.devTag}>
+          <Text style={styles.devTagText}>BRANCH: TESTOWY / DEV</Text>
+        </View>
+      </View>
     </View>
   );
 };
@@ -66,7 +75,11 @@ const styles = StyleSheet.create({
   statValue: { fontWeight: '900', fontSize: 14 },
   gunItem: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#1f2937' },
   gunName: { color: 'white', fontWeight: '700' },
-  gunRounds: { color: '#ef4444', fontWeight: '900' }
+  gunRounds: { color: '#ef4444', fontWeight: '900' },
+  versionFooter: { alignItems: 'center', marginTop: 10, opacity: 0.5 },
+  versionText: { color: '#6b7280', fontSize: 10, fontWeight: '800' },
+  devTag: { backgroundColor: '#374151', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, marginTop: 4 },
+  devTagText: { color: 'white', fontSize: 8, fontWeight: '900' }
 });
 
 export default ProfileView;
