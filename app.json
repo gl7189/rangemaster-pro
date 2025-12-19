@@ -3,25 +3,23 @@
   "expo": {
     "name": "RangeMaster Pro",
     "slug": "range-master-pro",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "sdkVersion": "52.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#030712"
     },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.grzegorz.rangemaster",
-      "buildNumber": "3"
+      "buildNumber": "4"
     },
     "android": {
       "package": "com.grzegorz.rangemaster",
-      "versionCode": 3
+      "versionCode": 4
     }
   }
 }

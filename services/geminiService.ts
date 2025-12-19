@@ -1,8 +1,6 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-
 export interface TargetAnalysisResult {
   aCount: number;
   cCount: number;
@@ -13,6 +11,9 @@ export interface TargetAnalysisResult {
 }
 
 export const analyzeTargetImage = async (base64Image: string): Promise<TargetAnalysisResult> => {
+  // Inicjalizacja instancji tuż przed użyciem, aby zapewnić dostęp do aktualnego process.env.API_KEY
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  
   const response = await ai.models.generateContent({
     model: 'gemini-3-flash-preview',
     contents: [

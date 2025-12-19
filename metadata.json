@@ -2,7 +2,7 @@
 {
   "name": "RangeMaster Pro",
   "description": "Profesjonalna aplikacja do obsługi zawodów strzeleckich z AI.",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "requestFramePermissions": [
     "camera",
     "microphone"
@@ -10,12 +10,10 @@
   "expo": {
     "name": "RangeMaster Pro",
     "slug": "range-master-pro",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
     "splash": {
-      "image": "./assets/splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#030712"
     },
