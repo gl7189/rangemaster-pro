@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
-import { StyleSheet, View, Text, SafeAreaView, ScrollView, ActivityIndicator, StatusBar, TouchableOpacity, Platform, RefreshControl } from 'react-native';
+import { StyleSheet, View, Text, SafeAreaView, ScrollView, ActivityIndicator, StatusBar, TouchableOpacity, Platform, RefreshControl, Alert } from 'react-native';
 import { Match, ScoreEntry, Shooter } from './types';
 import DashboardView from './views/DashboardView';
 import ScoringView from './views/ScoringView';
@@ -18,15 +18,18 @@ const App: React.FC = () => {
   const [pendingSync, setPendingSync] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [connectionError, setConnectionError] = useState(false);
 
   const loadData = useCallback(async () => {
     try {
+      setConnectionError(false);
       const remoteMatches = await dbService.fetchMatches();
       setMatches(remoteMatches || []);
       const status = await dbService.getSyncStatus();
       setPendingSync(status.pending);
     } catch (e) {
       console.error("Błąd ładowania danych:", e);
+      setConnectionError(true);
     } finally {
       setIsLoading(false);
       setRefreshing(false);
@@ -75,7 +78,7 @@ const App: React.FC = () => {
           <View>
             <Text style={styles.brandName}>RangeMaster <Text style={{color: '#ef4444'}}>Pro</Text></Text>
             <Text style={styles.statusText}>
-              {pendingSync > 0 ? `⚠️ OFFLINE: ${pendingSync}` : '🟢 ZSYNCHRONIZOWANO'}
+              {connectionError ? '🔴 BŁĄD POŁĄCZENIA' : pendingSync > 0 ? `⚠️ OFFLINE: ${pendingSync}` : '🟢 ONLINE'}
             </Text>
           </View>
         </View>
@@ -83,6 +86,12 @@ const App: React.FC = () => {
           <Text style={{fontSize: 18}}>🔄</Text>
         </TouchableOpacity>
       </View>
+
+      {connectionError && (
+        <View style={styles.errorBanner}>
+          <Text style={styles.errorText}>Brak połączenia z serwerem. Działasz w trybie lokalnym.</Text>
+        </View>
+      )}
 
       <ScrollView 
         style={styles.scrollView}
@@ -126,7 +135,7 @@ const styles = StyleSheet.create({
   container: { 
     flex: 1, 
     backgroundColor: '#030712',
-    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0
+    paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 0) : 0
   },
   loadingContainer: { flex: 1, backgroundColor: '#030712', justifyContent: 'center', alignItems: 'center' },
   loadingText: { color: 'white', marginTop: 20, fontWeight: '900', letterSpacing: 2 },
@@ -147,6 +156,8 @@ const styles = StyleSheet.create({
   bellBtn: { width: 44, height: 44, backgroundColor: '#1f2937', borderRadius: 22, justifyContent: 'center', alignItems: 'center' },
   scrollView: { flex: 1 },
   mainContent: { padding: 16, paddingBottom: 120 },
+  errorBanner: { backgroundColor: '#7f1d1d', padding: 8, alignItems: 'center' },
+  errorText: { color: '#fca5a5', fontSize: 12, fontWeight: '700' },
   emptyState: { justifyContent: 'center', alignItems: 'center', marginTop: 60 },
   emptyIcon: { fontSize: 60, marginBottom: 20 },
   emptyTitle: { color: 'white', fontSize: 18, fontWeight: 'bold', marginBottom: 20 },
