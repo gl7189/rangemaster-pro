@@ -1,36 +1,82 @@
 
 import React from 'react';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 
 interface NavbarProps {
   activeTab: string;
-  setActiveTab: (tab: any) => void;
+  setActiveTab: (tab: string) => void;
 }
 
 const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
   const tabs = [
-    { id: 'dashboard', label: 'Dashboard', icon: '🏠' },
-    { id: 'matches', label: 'Match Setup', icon: '📋' },
-    { id: 'scoring', label: 'Scoring', icon: '🔫' },
-    { id: 'analytics', label: 'Stats', icon: '📊' },
-    { id: 'profile', label: 'Profile', icon: '👤' },
+    { id: 'dashboard', label: 'Home', icon: '🏠' },
+    { id: 'matches', label: 'Tory', icon: '📋' },
+    { id: 'scoring', label: 'Start', icon: '🔫' },
+    { id: 'analytics', label: 'Staty', icon: '📊' },
+    { id: 'profile', label: 'Profil', icon: '👤' },
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 max-w-4xl mx-auto bg-gray-900 border-t border-gray-800 flex justify-around items-center p-2 z-50">
+    <View style={styles.navContainer}>
       {tabs.map((tab) => (
-        <button
+        <TouchableOpacity
           key={tab.id}
-          onClick={() => setActiveTab(tab.id)}
-          className={`flex flex-col items-center gap-1 p-2 rounded-xl transition-all ${
-            activeTab === tab.id ? 'text-red-500 bg-gray-800 shadow-inner' : 'text-gray-500 hover:text-gray-300'
-          }`}
+          onPress={() => setActiveTab(tab.id)}
+          activeOpacity={0.7}
+          style={[styles.navItem, activeTab === tab.id && styles.activeNavItem]}
         >
-          <span className="text-xl">{tab.icon}</span>
-          <span className="text-[10px] font-bold uppercase tracking-widest">{tab.label}</span>
-        </button>
+          <Text style={styles.icon}>{tab.icon}</Text>
+          <Text style={[styles.label, activeTab === tab.id && styles.activeLabel]}>
+            {tab.label}
+          </Text>
+        </TouchableOpacity>
       ))}
-    </nav>
+    </View>
   );
 };
+
+const styles = StyleSheet.create({
+  navContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    backgroundColor: '#111827',
+    paddingVertical: 12,
+    paddingBottom: 25, // Większy padding dla iPhone/nowych Androidów
+    borderTopWidth: 1,
+    borderTopColor: '#1f2937',
+    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+  },
+  navItem: { 
+    alignItems: 'center', 
+    justifyContent: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16 
+  },
+  activeNavItem: { 
+    backgroundColor: '#1f2937' 
+  },
+  icon: { 
+    fontSize: 20,
+    marginBottom: 4
+  },
+  label: { 
+    color: '#6b7280', 
+    fontSize: 10, 
+    fontWeight: '800', 
+    textTransform: 'uppercase' 
+  },
+  activeLabel: { 
+    color: '#ef4444' 
+  }
+});
 
 export default Navbar;

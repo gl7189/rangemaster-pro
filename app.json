@@ -8,34 +8,18 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
+    "newArchEnabled": true,
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#030712"
     },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.grzegorz.rangemaster",
-      "infoPlist": {
-        "NSCameraUsageDescription": "Aplikacja potrzebuje dostępu do kamery, aby analizować tarcze strzeleckie za pomocą AI.",
-        "NSMicrophoneUsageDescription": "Aplikacja potrzebuje dostępu do mikrofonu dla komend głosowych Range Officer'a."
-      }
+      "bundleIdentifier": "com.grzegorz.rangemaster"
     },
     "android": {
-      "adaptiveIcon": {
-        "backgroundColor": "#030712"
-      },
-      "package": "com.grzegorz.rangemaster",
-      "permissions": [
-        "android.permission.CAMERA",
-        "android.permission.RECORD_AUDIO"
-      ]
-    },
-    "web": {
-      "favicon": "./assets/favicon.png"
+      "package": "com.grzegorz.rangemaster"
     }
   }
 }
